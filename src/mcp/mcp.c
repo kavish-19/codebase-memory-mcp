@@ -6696,18 +6696,19 @@ static char *handle_index_status(cbm_mcp_server_t *srv, const char *args) {
         safe_str_free(&proj_info.indexed_at);
         safe_str_free(&proj_info.root_path);
         if (counts_unreadable) {
-            yyjson_mut_obj_add_str(
-                doc, root, "hint",
-                nodes < 0 && edges < 0
-                    ? "The nodes and edges tables could not be read; the database may be "
-                      "corrupt. Re-run index_repository(repo_path=...) or remove the project "
-                      "cache and re-index."
-                    : (nodes < 0 ? "The nodes table could not be read; the database may be "
-                                   "corrupt. Re-run index_repository(repo_path=...) or remove "
-                                   "the project cache and re-index."
-                                 : "The edges table could not be read; the database may be "
-                                   "corrupt. Re-run index_repository(repo_path=...) or remove "
-                                   "the project cache and re-index."));
+            const char *hint;
+            if (nodes < 0 && edges < 0) {
+                hint = "The nodes and edges tables could not be read; the database may be "
+                       "corrupt. Re-run index_repository(repo_path=...) or remove the project "
+                       "cache and re-index.";
+            } else if (nodes < 0) {
+                hint = "The nodes table could not be read; the database may be corrupt. Re-run "
+                       "index_repository(repo_path=...) or remove the project cache and re-index.";
+            } else {
+                hint = "The edges table could not be read; the database may be corrupt. Re-run "
+                       "index_repository(repo_path=...) or remove the project cache and re-index.";
+            }
+            yyjson_mut_obj_add_str(doc, root, "hint", hint);
         } else if (nodes == 0) {
             yyjson_mut_obj_add_str(
                 doc, root, "hint",
